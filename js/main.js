@@ -5,14 +5,18 @@ const RPS_LOOKUP = {
     s: { img: 'imgs/scissors.png', beats: 'p' },
 };
 
+const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-simple-countdown-922.mp3');
+
 /*----- app's state (variables) -----*/
 let scores; // Object with keys of 'p' (player), 't' (tie) & 'c' (computer)
 let results; // Object with keys of 'p' & 'c'
 let winner;  // '', 'p', 't', 'c'
+let ignoreClick;  // Boolean
 
 /*----- cached element references -----*/
 const pResultEl = document.getElementById('p-result');
 const cResultEl = document.getElementById('c-result');
+const countdownEl = document.getElementById('countdown');
 
 /*----- event listeners -----*/
 document.querySelector('main').addEventListener('click', handleChoice);
@@ -32,6 +36,7 @@ function init() {
         c: 'r'
     };
     winner = '';
+    ignoreClick = false;
     render();
 }
 
@@ -39,13 +44,41 @@ function init() {
 // impacted state, then call render()
 function handleChoice(evt) {
     // Guards
-    if (evt.target.tagName !== 'BUTTON') return;
-    results.p = evt.target.textContent.toLowerCase();
-    // randomly get computer's choice
-    results.c = getRandomRPS();
-    winner = getWinner();
-    scores[winner] += 1;
+    if (
+        evt.target.tagName !== 'BUTTON' ||
+        ignoreClick
+    ) return;
+    ignoreClick = true;
+    winner = '';
     render();
+    renderCountdown(function () {
+        results.p = evt.target.textContent.toLowerCase();
+        // randomly get computer's choice
+        results.c = getRandomRPS();
+        winner = getWinner();
+        scores[winner] += 1;
+        ignoreClick = false;
+        render();
+    });
+}
+
+function renderCountdown(cb) {
+    let count = 3;
+    audio.currentTime = 0;
+    audio.play();
+    countdownEl.style.visibility = 'visible';
+    countdownEl.textContent = count;
+    const timerId = setInterval(function () {
+        count--;
+        if (count) {
+            countdownEl.textContent = count;
+
+        } else {
+            countdownEl.style.visibility = 'hidden';
+            clearInterval(timerId);
+            cb();
+        }
+    }, 1000);
 }
 
 function getWinner() {
@@ -68,8 +101,8 @@ function render() {
 function renderResults() {
     pResultEl.src = RPS_LOOKUP[results.p].img;
     cResultEl.src = RPS_LOOKUP[results.c].img;
-    pResultEl.style.borderColor = winner === "p" ? "gray" : "white"
-    cResultEl.style.borderColor = winner === "c" ? "gray" : "white"
+    pResultEl.style.borderColor = winner === 'p' ? 'gray' : 'white';
+    cResultEl.style.borderColor = winner === 'c' ? 'gray' : 'white';
 }
 
 function renderScores() {
