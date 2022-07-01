@@ -1,8 +1,8 @@
 /*----- constants -----*/
 const RPS_LOOKUP = {
-    r: 'images/rock.png',
-    p: 'images/paper.png',
-    s: 'images/scissors.png',
+    r: { img: 'imgs/rock.png', beats: 's' },
+    p: { img: 'imgs/paper.png', beats: 'r' },
+    s: { img: 'imgs/scissors.png', beats: 'p' },
 };
 
 /*----- app's state (variables) -----*/
@@ -15,7 +15,7 @@ const pResultEl = document.getElementById('p-result');
 const cResultEl = document.getElementById('c-result');
 
 /*----- event listeners -----*/
-document.querySelector("main").addEventListener("click", handleChoice);
+document.querySelector('main').addEventListener('click', handleChoice);
 
 /*----- functions -----*/
 init();
@@ -35,13 +35,28 @@ function init() {
     render();
 }
 
+// In response to user interaction (click), we update all 
+// impacted state, then call render()
 function handleChoice(evt) {
-    //guards
-    if (evt.target.tagName !== "BUTTON") return;
+    // Guards
+    if (evt.target.tagName !== 'BUTTON') return;
     results.p = evt.target.textContent.toLowerCase();
-    //randomly get computer choice
-    results.c = computerChoice();
+    // randomly get computer's choice
+    results.c = getRandomRPS();
+    winner = getWinner();
+    scores[winner] += 1;
     render();
+}
+
+function getWinner() {
+    if (results.p === results.c) return 't';
+    return RPS_LOOKUP[results.p].beats === results.c ? 'p' : 'c';
+}
+
+function getRandomRPS() {
+    const rps = Object.keys(RPS_LOOKUP);
+    const rndIdx = Math.floor(Math.random() * rps.length);
+    return rps[rndIdx];
 }
 
 // transfer/visualize all state to the DOM
@@ -51,8 +66,10 @@ function render() {
 }
 
 function renderResults() {
-    pResultEl.src = RPS_LOOKUP[results.p];
-    cResultEl.src = RPS_LOOKUP[results.c];
+    pResultEl.src = RPS_LOOKUP[results.p].img;
+    cResultEl.src = RPS_LOOKUP[results.c].img;
+    pResultEl.style.borderColor = winner === "p" ? "gray" : "white"
+    cResultEl.style.borderColor = winner === "c" ? "gray" : "white"
 }
 
 function renderScores() {
@@ -61,10 +78,4 @@ function renderScores() {
         const scoreEl = document.getElementById(`${scoreKey}-score`);
         scoreEl.textContent = scores[scoreKey];
     }
-}
-
-function computerChoice() {
-    const rps = Object.keys(RPS_LOOKUP);
-    const rndIdx = Math.floor(Math.random() * rps.length);
-    return rps[rndIdx];
 }
