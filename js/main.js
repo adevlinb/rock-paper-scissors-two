@@ -15,7 +15,7 @@ const pResultEl = document.getElementById('p-result');
 const cResultEl = document.getElementById('c-result');
 
 /*----- event listeners -----*/
-
+document.querySelector("main").addEventListener("click", handleChoice);
 
 /*----- functions -----*/
 init();
@@ -32,6 +32,15 @@ function init() {
         c: 'r'
     };
     winner = '';
+    render();
+}
+
+function handleChoice(evt) {
+    //guards
+    if (evt.target.tagName !== "BUTTON") return;
+    results.p = evt.target.textContent.toLowerCase();
+    //randomly get computer choice
+    results.c = computerChoice();
     render();
 }
 
@@ -52,4 +61,10 @@ function renderScores() {
         const scoreEl = document.getElementById(`${scoreKey}-score`);
         scoreEl.textContent = scores[scoreKey];
     }
+}
+
+function computerChoice() {
+    const rps = Object.keys(RPS_LOOKUP);
+    const rndIdx = Math.floor(Math.random() * rps.length);
+    return rps[rndIdx];
 }
